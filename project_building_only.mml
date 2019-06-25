@@ -80,8 +80,8 @@ Layer:
           ORDER BY way_area DESC, feature
         ) AS landcover_low_zoom
     properties:
-      minzoom: 5
-      maxzoom: 9
+      minzoom: 1
+      maxzoom: 14
   - id: buildings
     geometry: polygon
     <<: *extents
