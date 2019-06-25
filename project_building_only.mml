@@ -37,9 +37,51 @@ _parts:
 
 Stylesheet:
   - style.mss
+  - fonts.mss
   - shapefiles.mss
+  - landcover.mss
+  - water.mss
+  - water-features.mss
+  - road-colors-generated.mss
+  - roads.mss
+  - power.mss
+  - placenames.mss
   - buildings.mss
+  - stations.mss
+  - amenity-points.mss
+  - ferry-routes.mss
+  - aerialways.mss
+  - admin.mss
+  - addressing.mss
 Layer:
+  - id: landcover-low-zoom
+    geometry: polygon
+    <<: *extents
+    Datasource:
+      <<: *osm2pgsql
+      table: |-
+        (SELECT
+            way, way_pixels,
+            COALESCE(wetland, landuse, "natural") AS feature
+          FROM (SELECT
+              way,
+              ('landuse_' || (CASE WHEN landuse IN ('forest', 'farmland', 'residential', 'commercial', 'retail', 'industrial',
+                                                    'meadow', 'grass', 'village_green', 'vineyard', 'orchard') THEN landuse ELSE NULL END)) AS landuse,
+              ('natural_' || (CASE WHEN "natural" IN ('wood', 'sand', 'scree', 'shingle', 'bare_rock', 'heath', 'grassland', 'scrub') THEN "natural" ELSE NULL END)) AS "natural",
+              ('wetland_' || (CASE WHEN "natural" IN ('wetland', 'mud') THEN (CASE WHEN "natural" IN ('mud') THEN "natural" ELSE tags->'wetland' END) ELSE NULL END)) AS wetland,
+              way_area/NULLIF(POW(!scale_denominator!*0.001*0.28,2),0) AS way_pixels,
+              way_area
+            FROM planet_osm_polygon
+            WHERE (landuse IN ('forest', 'farmland', 'residential', 'commercial', 'retail', 'industrial', 'meadow', 'grass', 'village_green', 'vineyard', 'orchard')
+              OR "natural" IN ('wood', 'wetland', 'mud', 'sand', 'scree', 'shingle', 'bare_rock', 'heath', 'grassland', 'scrub'))
+              AND way_area > 0.01*!pixel_width!::real*!pixel_height!::real
+              AND building IS NULL
+          ) AS features
+          ORDER BY way_area DESC, feature
+        ) AS landcover_low_zoom
+    properties:
+      minzoom: 5
+      maxzoom: 10
   - id: buildings
     geometry: polygon
     <<: *extents
@@ -60,4 +102,4 @@ Layer:
           ORDER BY COALESCE(layer,0), way_area DESC
         ) AS buildings
     properties:
-      minzoom: 12
+      minzoom: 10
