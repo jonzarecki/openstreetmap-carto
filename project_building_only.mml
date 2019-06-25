@@ -81,7 +81,16 @@ Layer:
         ) AS landcover_low_zoom
     properties:
       minzoom: 1
-      maxzoom: 14
+      maxzoom: 7
+  - id: necountries
+    geometry: linestring
+    <<: *extents84
+    Datasource:
+      file: data/ne_110m_admin_0_boundary_lines_land/ne_110m_admin_0_boundary_lines_land.shp
+      type: shape
+    properties:
+      minzoom: 1
+      maxzoom: 7
   - id: buildings
     geometry: polygon
     <<: *extents
@@ -102,4 +111,4 @@ Layer:
           ORDER BY COALESCE(layer,0), way_area DESC
         ) AS buildings
     properties:
-      minzoom: 14
+      minzoom: 12
